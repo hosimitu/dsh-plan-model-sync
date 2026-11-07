@@ -78,6 +78,26 @@ function sameRoute(left: ModelSelection, right: ModelSelection): boolean {
   return left.provider === right.provider && left.model === right.model
 }
 
+/**
+ * Whether this Agent exposes the model controller this plugin drives.
+ *
+ * `Agent.model` was added after the first releases that carried the log-only
+ * `plan/mode` event, so a host can deliver that event to an Agent with no
+ * controller. Narrowing at the boundary keeps the rest of the observer free of
+ * optional chaining while making the plugin inert instead of throwing there.
+ *
+ * @param agent - the live Agent for one Session.
+ * @returns true when `current()` and `select()` are both callable.
+ */
+function hasModelController(agent: Agent): agent is Agent & {
+  model: { current(): Readonly<ModelSelection> | undefined, select(selection: Readonly<ModelSelection>): void }
+} {
+  const model = (agent as { model?: unknown }).model
+  if (typeof model !== 'object' || model === null) return false
+  const candidate = model as { current?: unknown, select?: unknown }
+  return typeof candidate.current === 'function' && typeof candidate.select === 'function'
+}
+
 /** What the observer needs from the Host, passed explicitly so it stays testable. */
 export interface SyncDeps {
   /** Look up the live Agent for one Session id. */
@@ -135,6 +155,13 @@ export function createPlanModelSync(
     const agent = deps.agentOf(session.id)
     if (agent === undefined) {
       say('info', 'plan-model-sync: no live Agent for this Session; leaving the model alone')
+      return
+    }
+    // `Agent.model` arrived after the first releases that carried `plan/mode`.
+    // A host without it is not an error to report once per flip: the plugin
+    // simply has nothing to drive there, so it stays silent and inert.
+    if (!hasModelController(agent)) {
+      say('info', 'plan-model-sync: this Agent exposes no model controller; leaving the model alone')
       return
     }
 

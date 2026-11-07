@@ -114,6 +114,14 @@ Peer dependencies are the harness packages this plugin must share with the host.
 Declare them as peers so the installation's copy is the one the plugin imports;
 the devDependencies copy serves the type checker and the standalone tests.
 
+There is deliberately no `engines.dsh` range. An own `engines.dsh` decides
+compatibility alone and makes DSH ignore every peer range, so a narrow range
+disables the row at startup on any runtime outside it — including a local source
+checkout whose version number trails the API it actually ships. The real
+requirement is an API, not a release: this plugin needs `Agent.model` with
+`current()` and `select()`. A host without it logs one line and stays inert
+rather than failing, so widening the peers is enough.
+
 ## License
 
 MIT

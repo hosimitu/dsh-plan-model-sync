@@ -30,6 +30,8 @@ async function harness(options: {
   usable?: boolean | null
   header?: { origin?: 'subagent'; parentSession?: SessionId }
   config?: ReturnType<typeof resolveConfig>
+  /** Build an Agent that exposes no `model` controller, as an older host does. */
+  withoutModel?: boolean
 } = {}): Promise<Bench> {
   const ctx = new Context()
   await ctx.plugin(SessionStore)
@@ -38,13 +40,15 @@ async function harness(options: {
     : ctx.sessions.create(undefined, { meta: options.header })
   const selections: ModelSelection[] = []
   const logs: string[] = []
-  const agent = {
-    id: session.id,
-    model: {
-      current: () => options.current,
-      select: (selection: ModelSelection) => { selections.push({ ...selection }) },
-    },
-  } as unknown as Agent
+  const agent = (options.withoutModel === true
+    ? { id: session.id }
+    : {
+        id: session.id,
+        model: {
+          current: () => options.current,
+          select: (selection: ModelSelection) => { selections.push({ ...selection }) },
+        },
+      }) as unknown as Agent
   const observe = createPlanModelSync(options.config ?? CONFIG, {
     agentOf: id => (id === session.id ? agent : undefined),
     log: (_level, message) => { logs.push(message) },
@@ -187,6 +191,19 @@ describe('createPlanModelSync', () => {
     bench.emit(lastEvent(bench.session, 'plan/mode'))
     await bench.flush()
     expect(bench.selections).toEqual([])
+  })
+
+  it('stays inert on a host whose Agent exposes no model controller', async () => {
+    const bench = await harness({ withoutModel: true })
+    bench.flip(true, 0)
+    bench.emit(lastEvent(bench.session, 'plan/mode'))
+    await bench.flush()
+    bench.flip(false, 1)
+    bench.emit(lastEvent(bench.session, 'plan/mode'))
+    await bench.flush()
+    // Nothing to drive, so nothing is recorded and nothing throws.
+    expect(bench.selections).toEqual([])
+    expect(bench.logs.join('\n')).toMatch(/exposes no model controller/)
   })
 
   it('ignores unrelated session events', async () => {
