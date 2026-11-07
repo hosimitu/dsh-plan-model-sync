@@ -1,0 +1,65 @@
+{
+  "name": "@hosimitu/dsh-plan-model-sync",
+  "version": "0.1.0",
+  "description": "Switch the DeepSeek Harness session model with plan mode: a configured planning route while planning, and the route from before /plan once planning ends",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "cordis",
+    "plan-mode"
+  ],
+  "license": "MIT",
+  "author": "hosimitu",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hosimitu/dsh-plan-model-sync.git"
+  },
+  "homepage": "https://github.com/hosimitu/dsh-plan-model-sync#readme",
+  "bugs": {
+    "url": "https://github.com/hosimitu/dsh-plan-model-sync/issues"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.0.0",
+    "dsh": ">=0.2.2-0 <0.3.0-0"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepack": "pnpm run build"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.1.0",
+    "@deepseek-ai/dsh-agent": ">=0.2.2-0 <0.3.0-0",
+    "@deepseek-ai/dsh-llm": ">=0.2.2-0 <0.3.0-0",
+    "@deepseek-ai/dsh-plan-mode": ">=0.2.2-0 <0.3.0-0",
+    "@deepseek-ai/dsh-session": ">=0.2.2-0 <0.3.0-0"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.1.0",
+    "@deepseek-ai/dsh-agent": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-llm": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-plan-mode": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-session": "0.2.2-rc.1",
+    "@types/node": "^22.20.1",
+    "tsdown": "^0.22.2",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.11"
+  }
+}
